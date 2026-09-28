@@ -24,7 +24,10 @@ export default defineConfig({
     ],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      // Emit a machine-readable report so the Jest and Vitest halves of the
+      // suite can be merged into a single figure (issue #597).
+      reporter: ['text', 'json', 'json-summary', 'html'],
+      reportsDirectory: './coverage/vitest',
       exclude: [
         'node_modules/**',
         '.next/**',
@@ -32,6 +35,19 @@ export default defineConfig({
         '**/*.d.ts',
         '**/*.config.*',
         '**/dist/**',
+        // Generated files, stories, and test utilities should not count
+        // toward application coverage (issue #597).
+        '**/*.stories.[jt]s?(x)',
+        '**/*.story.[jt]s?(x)',
+        '**/__stories__/**',
+        '**/__tests__/**',
+        '**/__mocks__/**',
+        '**/test-utils/**',
+        '**/testUtils/**',
+        '**/*.test.[jt]s?(x)',
+        '**/*.spec.[jt]s?(x)',
+        '**/generated/**',
+        '**/*.generated.[jt]s?(x)',
       ],
     },
   },

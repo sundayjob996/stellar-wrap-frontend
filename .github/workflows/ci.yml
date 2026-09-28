@@ -54,6 +54,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      # `test:coverage` runs every runner in use (Jest + Vitest) and merges
+      # their reports into a single figure. The merged threshold gate lives in
+      # the coverage config, so a regression below the measured baseline fails
+      # this step.
       - name: Test with coverage
         run: pnpm test:coverage
 
@@ -118,6 +122,8 @@ jobs:
           path: storybook-static
           retention-days: 30
 
+      # Merged Jest + Vitest coverage; fails CI when the merged figure drops
+      # below the baseline threshold configured in the coverage config.
       - name: Test with coverage
         run: pnpm test:coverage
       
