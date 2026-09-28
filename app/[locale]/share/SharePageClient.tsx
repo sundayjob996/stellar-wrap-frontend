@@ -36,7 +36,6 @@ import {
   useReducedMotion,
   reducedMotionTransition,
 } from "@/app/hooks/useReducedMotion";
-import { useNativeShare } from "@/app/hooks/useNativeShare";
 
 const SocialIcons = {
   X: XIcon,
@@ -241,225 +240,140 @@ export default function SharePageClient() {
     };
   }, [shareOpen]);
 
-  useEffect(() => {
-    if (shareOpen) {
-      // Small delay to ensure the motion element is mounted before focusing
-      const timer = setTimeout(() => {
-        const firstButton = shareMenuRef.current?.querySelector("button");
-        firstButton?.focus();
-      }, 50);
-      return () => clearTimeout(timer);
-    }
-  }, [shareOpen]);
-
   return (
-    <div className="relative w-full h-screen overflow-hidden">
-      {showZeroActivity ? (
-        <div className="relative z-20 flex h-full items-center justify-center">
-          <ProgressIndicator currentStep={6} totalSteps={6} showNext={false} />
+    <div className="min-h-screen bg-black text-white">
+      <div className="mx-auto max-w-4xl px-4 py-10">
+        <h1 className="text-3xl font-bold">{t("title")}</h1>
+        <p className="mt-2 text-white/70">{t("subtitle")}</p>
+
+        {showZeroActivity ? (
           <ZeroActivityEmptyState />
-          {stellarExpertUrl && (
-            <a
-              href={stellarExpertUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="absolute bottom-6 right-6 md:bottom-8 md:right-8 z-30 flex items-center gap-2 px-4 py-3 rounded-xl backdrop-blur-xl border border-white/10 text-white/60 hover:text-white/90 hover:border-white/30 transition-all text-xs font-medium"
-              style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-            >
-              <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
-              {t("viewHistory")}
-            </a>
-          )}
-        </div>
-      ) : (
-        <>
-      <div
-        ref={shareImageRef}
-        className="absolute"
-        style={{ left: "-9999px", top: 0 }}
-      >
-        {cardFormat === "stories" ? (
-          <ShareImageCardStories themeColor={themeColor} archetypeImage={GOLDEN_USER.archetype.image} shareUrl={shareUrl} locale={locale} labels={cardLabels} />
         ) : (
-          <ShareImageCard themeColor={themeColor} archetypeImage={GOLDEN_USER.archetype.image} shareUrl={shareUrl} locale={locale} labels={cardLabels} />
+          <div className="mt-8 space-y-6">
+            <div ref={shareImageRef}>
+              {cardFormat === "square" ? (
+                <ShareImageCard
+                  username={username}
+                  transactions={transactions}
+                  persona={persona}
+                  topVibe={topVibe}
+                  vibePercentage={vibePercentage}
+                  themeColor={themeColor}
+                  labels={cardLabels}
+                />
+              ) : (
+                <ShareImageCardStories
+                  username={username}
+                  transactions={transactions}
+                  persona={persona}
+                  topVibe={topVibe}
+                  vibePercentage={vibePercentage}
+                  themeColor={themeColor}
+                  labels={cardLabels}
+                />
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setCardFormat("square")}
+                className={`rounded-full px-4 py-2 text-sm ${
+                  cardFormat === "square" ? "bg-white text-black" : "bg-white/10"
+                }`}
+              >
+                {t("squareFormat")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setCardFormat("stories")}
+                className={`rounded-full px-4 py-2 text-sm ${
+                  cardFormat === "stories" ? "bg-white text-black" : "bg-white/10"
+                }`}
+              >
+                {t("storiesFormat")}
+              </button>
+            </div>
+
+            <div className="relative flex flex-wrap items-center gap-3">
+              <button
+                ref={shareBtnRef}
+                type="button"
+                onClick={handlePrimaryShare}
+                className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black"
+              >
+                <Share2 className="h-4 w-4" />
+                {t("share")}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold"
+              >
+                {copied ? <Check className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
+                {copied ? t("copied") : t("copyLink")}
+              </button>
+
+              {stellarExpertUrl && (
+                <a
+                  href={stellarExpertUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  {t("viewOnStellarExpert")}
+                </a>
+              )}
+
+              <AnimatePresence>
+                {shareOpen && (
+                  <motion.div
+                    ref={shareMenuRef}
+                    initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={prefersReducedMotion ? undefined : { opacity: 0, y: 8 }}
+                    transition={reducedMotionTransition(prefersReducedMotion)}
+                    className="absolute left-0 top-full z-20 mt-2 flex gap-2 rounded-2xl bg-white/10 p-3 backdrop-blur"
+                  >
+                    {(
+                      [
+                        ["x", SocialIcons.X],
+                        ["whatsapp", SocialIcons.WhatsApp],
+                        ["facebook", SocialIcons.Facebook],
+                        ["linkedin", SocialIcons.LinkedIn],
+                        ["telegram", SocialIcons.Telegram],
+                      ] as const
+                    ).map(([platform, Icon]) => (
+                      <button
+                        key={platform}
+                        type="button"
+                        onClick={() => handleShare(platform)}
+                        aria-label={platform}
+                        className="rounded-full bg-white/10 p-2"
+                      >
+                        <Icon className="h-5 w-5" />
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {copyError && <p className="text-sm text-red-400">{copyError}</p>}
+
+            <ShareCard
+              username={username}
+              transactions={transactions}
+              persona={persona}
+              topVibe={topVibe}
+              vibePercentage={vibePercentage}
+              labels={cardLabels}
+            />
+          </div>
         )}
       </div>
-
-      <ShareCard
-        username={username}
-        transactions={transactions}
-        persona={persona}
-        topVibe={topVibe}
-        vibePercentage={vibePercentage}
-        shareImageRef={shareImageRef}
-        themeColor={themeColor}
-        cardFormat={cardFormat}
-        onFormatChange={setCardFormat}
-      />
-
-      <ProgressIndicator currentStep={6} totalSteps={6} showNext={false} />
-
-      <motion.div
-        className="absolute top-6 right-6 md:top-8 md:right-8 z-30"
-        initial={prefersReducedMotion ? false : { opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={reducedMotionTransition(prefersReducedMotion, { delay: 0.2 })}
-      >
-        <MuteToggle />
-      </motion.div>
-
-      {stellarExpertUrl && (
-        <motion.a
-          href={stellarExpertUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="absolute bottom-6 right-6 md:bottom-8 md:right-8 z-30 flex items-center gap-2 px-4 py-3 rounded-xl backdrop-blur-xl border border-white/10 text-white/60 hover:text-white/90 hover:border-white/30 transition-all text-xs font-medium"
-          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-          initial={prefersReducedMotion ? false : { opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={reducedMotionTransition(prefersReducedMotion, { delay: 0.4 })}
-        >
-          <ExternalLink className="w-3.5 h-3.5" />
-          View full history on Stellar.expert
-        </motion.a>
-      )}
-
-      <div className="absolute bottom-6 left-6 z-30">
-        <div className="relative">
-          <AnimatePresence>
-            {shareOpen && (
-              <motion.div
-                ref={shareMenuRef}
-                initial={prefersReducedMotion ? false : { opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={prefersReducedMotion ? undefined : { opacity: 0, y: 10, scale: 0.95 }}
-                transition={reducedMotionTransition(prefersReducedMotion, { duration: 0.2 })}
-                className="absolute bottom-18 left-0 w-[200px] h-[350px] bg-[#060607] border border-[#232325] rounded-2xl shadow-2xl p-2 z-50 flex flex-col items-center justify-center gap-2"
-                style={{ boxShadow: "0 10px 40px rgba(0,0,0,0.8)" }}
-                role="menu"
-                aria-label="Share this wrap"
-              >
-                <button
-                  onClick={() => handleShare("x")}
-                  role="menuitem"
-                  className="flex cursor-pointer items-center pl-4 w-42 h-15 gap-3 p-2 rounded-xl bg-[#0F0F10] hover:bg-[#1a1a1c] transition-colors group"
-                >
-                  <div className="h-10 w-10 flex items-center justify-center rounded-full bg-black border border-white/10">
-                    <SocialIcons.X />
-                  </div>
-                  <span className="font-bold text-white tracking-wide">x</span>
-                </button>
-
-                <button
-                  onClick={() => handleShare("whatsapp")}
-                  role="menuitem"
-                  className="flex cursor-pointer items-center pl-4 w-42 h-15 gap-3 p-2 rounded-xl bg-[#0F0F10] hover:bg-[#1a1a1c] transition-colors group"
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366]">
-                    <SocialIcons.WhatsApp />
-                  </div>
-                  <span className="font-bold text-white tracking-wide">
-                    WhatsApp
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => handleShare("facebook")}
-                  role="menuitem"
-                  className="flex items-center cursor-pointer pl-4 gap-3 p-2 w-42 h-15 rounded-xl bg-[#0F0F10] hover:bg-[#1a1a1c] transition-colors"
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1877F2]">
-                    <SocialIcons.Facebook />
-                  </div>
-                  <span className="font-bold text-white tracking-wide">
-                    Facebook
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => handleShare("linkedin")}
-                  role="menuitem"
-                  className="flex items-center pl-4 cursor-pointer gap-3 p-2 w-42 h-15 rounded-xl bg-[#0F0F10] hover:bg-[#1a1a1c] transition-colors"
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0077B5]">
-                    <SocialIcons.LinkedIn />
-                  </div>
-                  <span className="font-bold text-white tracking-wide">
-                    LinkedIn
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => handleShare("telegram")}
-                  role="menuitem"
-                  className="flex items-center cursor-pointer pl-4 gap-3 p-2 w-42 h-15 rounded-xl bg-[#0F0F10] hover:bg-[#1a1a1c] transition-colors"
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#229ED9]">
-                    <SocialIcons.Telegram />
-                  </div>
-                  <span className="font-bold text-white tracking-wide">
-                    Telegram
-                  </span>
-                </button>
-
-                <button
-                  onClick={handleCopyLink}
-                  role="menuitem"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      handleCopyLink();
-                    }
-                  }}
-                  className="flex items-center cursor-pointer pl-4 gap-3 p-2 w-42 h-15 rounded-xl bg-[#0F0F10] hover:bg-[#1a1a1c] transition-colors"
-                  aria-live="polite"
-                  aria-label={copied ? t("linkCopied") : t("copyLink")}
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#6366f1]">
-                    {copied ? (
-                      <Check className="h-5 w-5 text-white" />
-                    ) : (
-                      <Link2 className="h-5 w-5 text-white" />
-                    )}
-                  </div>
-                  <span className="font-bold text-white tracking-wide">
-                    {copied ? t("copied") : t("copyLink")}
-                  </span>
-                </button>
-
-                {copyError && (
-                  <p className="text-xs text-red-400" aria-live="assertive">
-                    {copyError}
-                  </p>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <button
-            ref={shareBtnRef}
-            type="button"
-            onClick={() => setShareOpen(!shareOpen)}
-            className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-full border border-white/10 bg-black/60 text-white backdrop-blur-md transition hover:bg-white/5"
-            aria-label={shareOpen ? t("closeMenu") : t("openMenu")}
-            aria-expanded={shareOpen}
-            aria-haspopup="menu"
-          >
-            <motion.div
-              animate={{ rotate: shareOpen ? 50 : 0 }}
-              transition={
-                prefersReducedMotion
-                  ? { duration: 0 }
-                  : { type: "spring", stiffness: 260, damping: 20 }
-              }
-            >
-              <Share2 className="h-5 w-5 sm:h-7 sm:w-7 cursor-pointer" aria-hidden="true" />
-            </motion.div>
-          </button>
-        </div>
-      </div>
-        </>
-      )}
     </div>
   );
 }
