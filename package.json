@@ -32,6 +32,8 @@
     "test:visual": "playwright test --project=visual-chromium",
     "test:visual:update": "playwright test --project=visual-chromium --update-snapshots",
     "test:visual:ci": "playwright test --project=visual-chromium --ignore-snapshots=false",
+    "test:load": "node load-tests/run.mjs",
+    "test:load:baseline": "node load-tests/run.mjs --update-baseline",
     "vitest": "vitest",
     "test:ui": "vitest --ui",
     "storybook": "storybook dev -p 6006",
