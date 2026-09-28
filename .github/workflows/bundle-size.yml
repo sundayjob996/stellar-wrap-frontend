@@ -37,6 +37,9 @@ jobs:
         env:
           ANALYZE: true
 
+      - name: Check bundle size against .size-limit.json
+        run: pnpm exec size-limit
+
       - name: Upload bundle analysis
         uses: actions/upload-artifact@v4
         with:
